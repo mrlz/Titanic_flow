@@ -1,0 +1,157 @@
+Filename: main.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    18    779.3 MiB    779.3 MiB           1   @profile
+    19                                         def train_and_log():
+    20   1399.0 MiB     16.4 MiB           2       with mlflow.start_run(log_system_metrics=True) as run:
+    21    795.7 MiB      0.0 MiB           1           mlflow.set_tag('Dev', 'mrlz')
+    22                                         
+    23                                                 # Data import
+    24    795.7 MiB      0.0 MiB           1           data_path = './dataset/'
+    25    795.7 MiB      0.0 MiB           1           model_path = './models/'
+    26                                         
+    27    795.7 MiB      0.0 MiB           1           os.makedirs(data_path, exist_ok=True)
+    28                                         
+    29    795.7 MiB      0.0 MiB           1           train_data = data_path + 'train.csv'
+    30    795.7 MiB      0.0 MiB           1           test_data = data_path + 'test_augmented.csv'
+    31                                         
+    32                                         
+    33    797.0 MiB      1.3 MiB           1           training = pd.read_csv(train_data)
+    34    797.4 MiB      0.4 MiB           1           test = pd.read_csv(test_data)
+    35    797.4 MiB      0.0 MiB           1           logging.info("Data correctly loaded.")
+    36                                                 ###########################################
+    37                                         
+    38                                         
+    39                                                 ###################### Data split
+    40    798.2 MiB      0.9 MiB           1           X, y = features_and_labels(training)
+    41                                         
+    42                                         
+    43    798.2 MiB      0.0 MiB           1           sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=23)
+    44                                         
+    45    798.6 MiB      0.4 MiB           2           for train_index, val_index in sss.split(X, y):
+    46    798.6 MiB      0.0 MiB           1               X_train, X_val = X.iloc[train_index], X.iloc[val_index]
+    47    798.6 MiB      0.0 MiB           1               y_train, y_val = y.iloc[train_index], y.iloc[val_index]
+    48                                         
+    49    798.6 MiB      0.0 MiB           1           logging.info("Data correctly split.")
+    50                                                 
+    51    798.6 MiB      0.0 MiB           1           sample_scaler = None
+    52    798.6 MiB      0.0 MiB           1           sample_median = None
+    53                                         
+    54   1273.4 MiB    474.8 MiB           1           X_train, y_dummy, sample_scaler, sample_median = preprocess_samples(X_train, False, sample_scaler, sample_median)
+    55   1273.7 MiB      0.2 MiB           1           X_val, y_dummy, sample_scaler, sample_median = preprocess_samples(X_val, False, sample_scaler, sample_median)
+    56                                         
+    57                                         
+    58   1273.7 MiB      0.0 MiB           1           logging.info("Data correctly cleaned.")
+    59                                         
+    60                                         
+    61                                                 ################### Define classifier
+    62   1273.7 MiB      0.0 MiB           1           xgb_clf = xgb.XGBClassifier()
+    63   1273.7 MiB      0.0 MiB           1           logging.info("Classifier correctly defined.")
+    64                                                 ################### Grid search hyperparameters
+    65                                         
+    66                                                 # param_grid = {
+    67                                                 #     'objective': ['reg:squarederror', 'reg:squaredlogerror', 'reg:logistic'],
+    68                                                 #     'max_depth': [3,5,7],
+    69                                                 #     'learning_rate':[0.1, 0.2, 0.3, 0.4],
+    70                                                 #     'subsample': [0.6, 1],
+    71                                                 #     'gamma' : [0, 1],
+    72                                                 #     'lambda' : [1, 10]
+    73                                                 # }
+    74                                         
+    75                                         
+    76                                                 # param_grid = {
+    77                                                 #     'objective': ['reg:squaredlogerror'],
+    78                                                 #     'max_depth': [5],
+    79                                                 #     'learning_rate':[0.3],
+    80                                                 #     'subsample': [1],
+    81                                                 #     'gamma' : [0],
+    82                                                 #     'lambda' : [10]
+    83                                                 # }
+    84                                         
+    85   1273.7 MiB      0.0 MiB           1           param_grid = {'gamma': [0], 'lambda': [10], 'learning_rate': [0.1], 'max_depth': [5], 'objective': ['reg:squaredlogerror'], 'subsample': [0.6]}
+    86                                         
+    87   1273.7 MiB      0.0 MiB           1           mcc_scorer = make_scorer(matthews_corrcoef)
+    88   1273.7 MiB      0.0 MiB           1           grid_search = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, cv=5, scoring=mcc_scorer, n_jobs=-1)
+    89   1346.0 MiB     72.3 MiB           1           grid_search.fit(X_train.values,y_train.values)
+    90   1346.0 MiB      0.0 MiB           1           print("Best parameters:", grid_search.best_params_)
+    91   1346.0 MiB      0.0 MiB           1           print("Best score:", grid_search.best_score_)
+    92                                         
+    93   1346.0 MiB      0.0 MiB           1           logging.info("Grid search correctly executed.")
+    94                                                 ################## Fit best classifier
+    95                                         
+    96   1346.0 MiB      0.0 MiB           1           final_clf = xgb.XGBClassifier(**grid_search.best_params_)
+    97                                         
+    98   1346.0 MiB      0.0 MiB           1           final_scaler = None
+    99   1346.0 MiB      0.0 MiB           1           final_median = None
+   100                                         
+   101   1366.8 MiB     20.8 MiB           1           X, y_dummy, final_scaler, final_median = preprocess_samples(X, False, final_scaler, final_median)
+   102   1366.8 MiB      0.0 MiB           1           X_test, y_test, final_scaler, final_median = preprocess_samples(test, True, final_scaler, final_median) 
+   103   1398.2 MiB     31.4 MiB           1           final_clf.fit(X, y.values) 
+   104                                         
+   105                                         
+   106   1398.2 MiB      0.0 MiB           1           logging.info("Final classifier correctly trained.")
+   107                                         
+   108                                         
+   109   1398.2 MiB      0.0 MiB           1           model_name = "Titanic classifier" 
+   110                                         
+   111   1398.2 MiB      0.0 MiB           1           model_params = grid_search.best_params_
+   112   1398.2 MiB      0.0 MiB           1           mlflow.log_params(model_params)
+   113                                                 
+   114                                                 ################# Predict over sets
+   115   1398.2 MiB      0.0 MiB           1           train_predictions  = final_clf.predict(X.values)
+   116   1398.2 MiB      0.0 MiB           1           test_predictions = final_clf.predict(X_test.values)
+   117                                         
+   118   1398.2 MiB      0.0 MiB           1           train_acc = accuracy_score(y.values, train_predictions)
+   119   1398.2 MiB      0.0 MiB           1           test_acc = accuracy_score(y_test.values, test_predictions)
+   120   1398.2 MiB      0.0 MiB           1           logging.info("Predictions correctly executed.")
+   121                                         
+   122   1398.4 MiB      0.1 MiB           1           train_mcc = matthews_corrcoef(y.values, train_predictions)
+   123   1398.4 MiB      0.0 MiB           1           test_mcc = matthews_corrcoef(y_test.values, test_predictions)
+   124                                         
+   125   1398.4 MiB      0.0 MiB           1           mlflow.log_metric("Best classifier train accuracy", train_acc)
+   126   1398.4 MiB      0.0 MiB           1           print(f"Train accuracy {train_acc}")
+   127   1398.4 MiB      0.0 MiB           1           mlflow.log_metric("Best classifier test accuracy", test_acc)
+   128   1398.4 MiB      0.0 MiB           1           print(f"Test accuracy {test_acc}")
+   129   1398.4 MiB      0.0 MiB           1           mlflow.log_metric("Best mcc in grid search", grid_search.best_score_)
+   130   1398.4 MiB      0.0 MiB           1           print(f"Best mcc in grid search {grid_search.best_score_}")
+   131                                         
+   132   1398.4 MiB      0.0 MiB           1           print(f"Best classifier train MCC {train_mcc}")
+   133   1398.4 MiB      0.0 MiB           1           mlflow.log_metric("Best classifier train MCC", train_mcc)
+   134   1398.4 MiB      0.0 MiB           1           print(f"Best classifier test MCC {test_mcc}")
+   135   1398.4 MiB      0.0 MiB           1           mlflow.log_metric("Best classifier test MCC", test_mcc)
+   136                                         
+   137                                         
+   138   1398.4 MiB      0.0 MiB           1           conf_matrix = confusion_matrix(y_test.values ,test_predictions)
+   139   1398.4 MiB      0.0 MiB           1           print(conf_matrix)
+   140                                         
+   141                                                 # mlflow.log_metric("Confusion matrix over test set", conf_matrix)
+   142   1398.4 MiB      0.0 MiB           1           class_names = ["Dies", "Survives"]
+   143   1398.4 MiB      0.0 MiB           1           disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=class_names)
+   144   1398.4 MiB      0.0 MiB           1           disp.plot(cmap=plt.cm.Blues, xticks_rotation='horizontal')
+   145   1398.4 MiB      0.0 MiB           1           plt.title("Confusion Matrix - Titanic")
+   146   1399.0 MiB      0.7 MiB           1           plt.savefig("Conf_matrix.png")
+   147   1399.0 MiB      0.0 MiB           1           mlflow.log_artifact("Conf_matrix.png")
+   148   1399.0 MiB      0.0 MiB           1           mlflow.log_dict(np.array(conf_matrix).tolist(), "Confusion_matrix dictionary")
+   149                                         
+   150                                                 ################ Save best model
+   151   1399.0 MiB      0.0 MiB           1           os.makedirs(model_path, exist_ok=True)
+   152   1399.0 MiB      0.0 MiB           1           final_clf.save_model(model_path + 'xgboost_titanic.json')
+   153                                         
+   154   1399.0 MiB      0.0 MiB           2           with open(model_path + 'median.pkl', 'wb') as file:
+   155   1399.0 MiB      0.0 MiB           1               pickle.dump(final_median, file)
+   156                                                 
+   157   1399.0 MiB      0.0 MiB           2           with open(model_path + 'scaler.pkl', 'wb') as file:
+   158   1399.0 MiB      0.0 MiB           1               pickle.dump(final_scaler, file)
+   159                                         
+   160   1399.0 MiB      0.0 MiB           1           mlflow.log_artifacts(model_path)
+   161   1399.0 MiB      0.0 MiB           1           logging.info("Model parameters correctly saved.")
+   162                                         
+   163                                                 #############################
+   164                                         
+   165   1399.0 MiB      0.0 MiB           1           mlflow.set_tag('preprocessing', 'OneHotEncoder, StandardScaler, Age fill in, Embarked fill in.')
+   166   1399.0 MiB      0.0 MiB           1           mlflow.set_tag('feature_construction', 'Sentence Transformer Embeddings.')
+   167                                         
+   168   1399.0 MiB      0.0 MiB           1           logging.info("MLflow tracking completed successfully")
+
+
