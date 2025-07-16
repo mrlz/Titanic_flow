@@ -4,6 +4,10 @@ from app import app
 import json
 
 def test_read_main():
+    """
+    Performs rudimentary tests over /predict endpoint of the FastAPI APP.
+    """
+    
     with TestClient(app) as client:
         #Dies
         Jack_Dawson = {'PassengerId': 1,

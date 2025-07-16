@@ -22,14 +22,18 @@ class InputData(BaseModel):
     Ticket: str | None = ''
     Fare: float | None = 0
     Cabin: str | None = ''
-    Embarked: str | None = 'S'
+    Embarked: Literal['S', 'C', 'Q'] | None = 'S'
 
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load the ML model
+    """
+    Loads all necessary APP resources upon start, such as
+    the model to compute the embeddings, and the scaler
+    and median.
+    """
     model_path = './models/'
     app.state.loaded_model = xgb.XGBClassifier()
     app.state.loaded_model.load_model('./models/xgboost_titanic.json')
@@ -61,6 +65,24 @@ async def read_root():
 
 @app.post("/predict", response_model = list[int])
 async def predict(input_data: list[InputData]):
+        """
+        Takes a list of passengers as input. 
+
+        Passengers are defined by the features:
+        PassengerId: An int. Optional.
+        Pclass: An int. 0, 1 or 2.
+        Name: A string. Can be empty. Optional.
+        Sex: A string. Must be male or female.
+        Age: A float. Optional.
+        SibSp: An int. Optional.
+        Parch: An int. Optional.
+        Ticket: A string. Can be empty. Optional.
+        Fare: A float. Optional.
+        Cabin: A string. Can be empty. Optional.
+        Embarked: A string. Must be S, Q or C.
+
+        Computes prediction regarding survival.
+        """
         app.state.logger.info("Received a request for a prediction.")
         input_list_of_dicts = [element.dict() for element in input_data]
         batch_processing_samples, batch_y, current_scaler, current_median = preprocess_samples(pd.DataFrame(input_list_of_dicts), False, sample_scaler=app.state.scaler, sample_median=app.state.median)

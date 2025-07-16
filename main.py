@@ -15,6 +15,21 @@ import pickle
 from data_preprocessing import prepare_data, features_and_labels, fill_missing_age, compute_text_features, join_and_scale, preprocess_samples
 
 def train_and_log():
+    """
+    Splits training set.
+
+    Computes feature vectors.
+
+    Performs model hyper-parameter selection through grid search.
+
+    Fits best model (with best found hyper-parameters) to training data.
+
+    Computes metrics over training and test sets.
+
+    Exports model.
+
+    Employs mlflow for tracking.
+    """
     with mlflow.start_run(log_system_metrics=True) as run:
         mlflow.set_tag('Dev', 'mrlz')
 
