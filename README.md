@@ -71,7 +71,7 @@ main.py
 -  Trains a final classifier, using the best hyperparameters found in the search, to train over the complete training set.
 -  Tests the final classifier over the original training set and the test set.
 -  Exports the model, along with its accompanying artifacts, to disk, so it can be used later by the FastAPI app.
--  Does all of this while working under mlflow, which provides.
+-  Does all of this while working under mlflow, which provides experiment monitoring, simplifying the task of keeping track of parameters and metrics.
 -  Also, provides some logs regarding the training steps and program execution information.
 
 app.py
