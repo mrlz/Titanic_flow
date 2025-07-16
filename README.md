@@ -1,13 +1,29 @@
 # Titanic_flow
 Self-contained implementation, of training flow, to produce a classifier that powers a FastAPI prediction endpoint, running on Docker containers.
 
-We will assume that you have a working installation of python3 and docker.
+Requirements
+-
+We will assume that you have a working installation of python3 (with venv), docker and make.
 
 In case you don´t, please refer to:
 
 https://docs.docker.com/engine/install/ubuntu/
 
 https://wiki.python.org/moin/BeginnersGuide/Download
+
+You can install venv using
+
+sudo apt install python3.xx-venv
+
+where xx is your version of python 3.
+
+You can install make using
+
+sudo apt install make
+
+-------------------------------------
+Dataset
+-
 
 The classifier tackles the problem of predicting if a Titanic passenger survived or not.
 
@@ -85,7 +101,7 @@ test_app.py
 
 data_drift.py
 -  Shows how to inspect data drift using Evidently AI.
--  Can be run using the 'python data_drift.py' command.
+-  Can be run using the 'python data_drift.py' command, from the virtualenv's python installation (./titanic_env/bin/python data_drift.py)
 
 mlflow
 -
