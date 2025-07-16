@@ -8,7 +8,8 @@ COPY models/ ./models/
 
 ENV LOG_LEVEL=DEBUG
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements_container.txt .
+RUN pip install --no-cache-dir -r requirements_container.txt
+
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
