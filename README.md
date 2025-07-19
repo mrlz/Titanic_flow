@@ -3,7 +3,7 @@ Self-contained implementation, of training flow, to produce a classifier that po
 
 Requirements
 -
-We will assume that you have a working installation of python3 (with venv), docker and make.
+We will assume that you have a working installation of python3 (3.12.3, with venv), docker and make.
 
 In case you don´t, please refer to:
 
