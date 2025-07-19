@@ -7,19 +7,12 @@ We will assume that you have a working installation of python3 (3.12.3, with ven
 
 In case you don´t, please refer to:
 
-https://docs.docker.com/engine/install/ubuntu/
 
 https://wiki.python.org/moin/BeginnersGuide/Download
 
-You can install venv using
+https://docs.docker.com/engine/install/ubuntu/
 
-sudo apt install python3.xx-venv
-
-where xx is your version of python 3.
-
-You can install make using
-
-sudo apt install make
+https://www.geeksforgeeks.org/installation-guide/how-to-install-make-on-ubuntu/
 
 -------------------------------------
 Dataset
